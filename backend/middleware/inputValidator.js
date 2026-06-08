@@ -83,7 +83,13 @@ export const authValidation = {
     body('fullName').matches(REGEX.fullName).withMessage('Invalid full name format'),
     body('idNumber').matches(REGEX.idNumber).withMessage('ID number must be 8-13 digits'),
     body('accountNumber').matches(REGEX.accountNumber).withMessage('Account number must be 10-12 digits'),
-    body('password').isLength({ min: 12, max: 256 }).withMessage('Password must be at least 12 characters long')
+    body('password').custom((value) => {
+      const result = validatePasswordStrength(value);
+      if (!result.valid) {
+        throw new Error(result.error);
+      }
+      return true;
+    })
   ]),
   login: validate([
     body('username').matches(REGEX.username),
