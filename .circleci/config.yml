@@ -1,0 +1,79 @@
+version: 2.1
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@2.0.1
+
+jobs:
+  analyze-backend:
+    docker:
+      - image: cimg/node:20.10.0
+    working_directory: ~/bank_project/backend
+    steps:
+      - checkout:
+          path: ~/bank_project
+      - run:
+          name: Install dependencies
+          command: |
+            npm ci --ignore-scripts
+      - run:
+          name: Lint
+          command: npm run lint --if-present || echo 'No lint script'
+      - run:
+          name: Tests
+          command: npm test --if-present
+      - sonarcloud/scan:
+          organization: $SONAR_ORG
+          project-key: bank_project_backend
+          token: $SONAR_TOKEN
+          working_directory: backend
+          project-base-dir: backend
+
+  analyze-frontend:
+    docker:
+      - image: cimg/node:20.10.0
+    working_directory: ~/bank_project/frontend
+    steps:
+      - checkout:
+          path: ~/bank_project
+      - run:
+          name: Install dependencies
+          command: |
+            npm ci --ignore-scripts
+      - run:
+          name: Build scan
+          command: npm run build
+      - sonarcloud/scan:
+          organization: $SONAR_ORG
+          project-key: bank_project_frontend
+          token: $SONAR_TOKEN
+          working_directory: frontend
+          project-base-dir: frontend
+
+workflows:
+  sonarcloud-analysis:
+    name: SonarCloud Scan
+    triggers:
+      - schedule:
+          cron: "0 6 * * *"
+          filters:
+            branches:
+              only:
+                - main
+                - master
+      - push:
+          branches:
+            only:
+              - main
+              - master
+      - pull_request:
+          branches:
+            only:
+              - main
+              - master
+    jobs:
+      - analyze-backend:
+          context:
+            - sonarcloud-context
+      - analyze-frontend:
+          context:
+            - sonarcloud-context
