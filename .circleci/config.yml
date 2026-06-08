@@ -1,79 +1,58 @@
-version: 2.1
+name: CI Build & SonarCloud Analysis
 
-orbs:
-  sonarcloud: sonarsource/sonarcloud@2.0.1
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
-  analyze-backend:
-    docker:
-      - image: cimg/node:20.10.0
-    working_directory: ~/bank_project/backend
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
-      - checkout:
-          path: ~/bank_project
-      - run:
-          name: Install dependencies
-          command: |
-            npm ci --ignore-scripts
-      - run:
-          name: Lint
-          command: npm run lint --if-present || echo 'No lint script'
-      - run:
-          name: Tests
-          command: npm test --if-present
-      - sonarcloud/scan:
-          organization: $SONAR_ORG
-          project-key: bank_project_backend
-          token: $SONAR_TOKEN
-          working_directory: backend
-          project-base-dir: backend
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test --if-present
+      - name: SonarCloud Backend Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORG }}
+          SONAR_PROJECT_KEY: bank_project_backend
 
-  analyze-frontend:
-    docker:
-      - image: cimg/node:20.10.0
-    working_directory: ~/bank_project/frontend
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
-      - checkout:
-          path: ~/bank_project
-      - run:
-          name: Install dependencies
-          command: |
-            npm ci --ignore-scripts
-      - run:
-          name: Build scan
-          command: npm run build
-      - sonarcloud/scan:
-          organization: $SONAR_ORG
-          project-key: bank_project_frontend
-          token: $SONAR_TOKEN
-          working_directory: frontend
-          project-base-dir: frontend
-
-workflows:
-  sonarcloud-analysis:
-    name: SonarCloud Scan
-    triggers:
-      - schedule:
-          cron: "0 6 * * *"
-          filters:
-            branches:
-              only:
-                - main
-                - master
-      - push:
-          branches:
-            only:
-              - main
-              - master
-      - pull_request:
-          branches:
-            only:
-              - main
-              - master
-    jobs:
-      - analyze-backend:
-          context:
-            - sonarcloud-context
-      - analyze-frontend:
-          context:
-            - sonarcloud-context
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run build --if-present
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-build
+          path: frontend/build
+          retention-days: 14
+      - name: Upload build artifact
+        if: always()
+        run: true
