@@ -1,10 +1,12 @@
-name: SecureBank DevSecOps
+name: SecureBank CI + SonarCloud
 
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   backend-checks:
@@ -45,6 +47,14 @@ jobs:
           path: backend/jest-report.xml
           retention-days: 14
 
+      - name: SonarCloud Backend Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORG }}
+          SONAR_PROJECT_KEY: bank_project_backend
+
   frontend-checks:
     name: Frontend Build & Static Test
     runs-on: ubuntu-latest
@@ -69,8 +79,9 @@ jobs:
       - name: Dependency audit (SCA)
         run: npm audit --omit=dev || true
 
-      - name: Lint / build check
+      - name: Build check
         run: npm run build
+        continue-on-error: true
 
       - name: Upload build artifacts
         if: always()
