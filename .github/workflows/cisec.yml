@@ -54,6 +54,7 @@ jobs:
         with:
           organization: ${{ secrets.SONAR_ORG }}
           projectKey: bank_project_backend
+          projectBaseDir: backend
 
   frontend-checks:
     name: Frontend Build & Static Test
