@@ -54,7 +54,7 @@ function Login({ onLogin }) {
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
         </form>
-        <p className="auth-link">Don't have an account? <Link to="/register">Register</Link></p>
+        <p className="auth-link">Don't have an account? </p>
       </div>
     </div>
   );
