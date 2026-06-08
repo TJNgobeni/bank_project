@@ -51,9 +51,13 @@ jobs:
         if: always()
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          organization: ${{ secrets.SONAR_ORG }}
-          projectKey: bank_project_backend
+          args: >
+            -Dsonar.projectKey=bank_project_backend
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.sources=.
+            -Dsonar.host.url=https://sonarcloud.io
           projectBaseDir: backend
 
   frontend-checks:
