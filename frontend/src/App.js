@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Register from './pages/Register';
+
 import Dashboard from './pages/Dashboard';
 import Payment from './pages/Payment';
 import EmployeeDashboard from './pages/EmployeeDashboard';
@@ -36,7 +36,7 @@ function App() {
       {user && <Navbar user={user} onLogout={handleLogout} />}
       <Routes>
         <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" />} />
+
         <Route path="/dashboard" element={user ? (user.role === 'employee' ? <EmployeeDashboard /> : <Dashboard user={user} />) : <Navigate to="/login" />} />
         <Route path="/payment" element={user && user.role === 'customer' ? <Payment user={user} /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />

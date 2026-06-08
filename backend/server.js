@@ -7,6 +7,7 @@ import { securityHeaders } from './middleware/securityHeaders.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payments.js';
+import { seedStaticEmployees } from './seedEmployees.js';
 
 dotenv.config();
 
@@ -49,6 +50,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error.' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  try {
+    const result = await seedStaticEmployees();
+    console.log(`Static employee seed complete: ${result.created} created, ${result.existing} already present`);
+  } catch (seedError) {
+    console.error('Static employee seeding failed:', seedError.message);
+  }
   console.log(`Secure server running on port ${PORT}`);
 });

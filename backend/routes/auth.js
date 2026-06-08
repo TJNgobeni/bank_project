@@ -15,36 +15,7 @@ const generateFingerprint = (req) => {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 
-// POST /api/auth/register
-router.post('/register', authValidation.register, async (req, res) => {
-  try {
-    const { username, fullName, idNumber, accountNumber, password } = req.body;
-
-    const existingUser = await User.findByUsername(username);
-    if (existingUser) {
-      return res.status(409).json({ error: 'Username already exists.' });
-    }
-
-    const existingAccount = await User.findByAccountNumber(accountNumber);
-    if (existingAccount) {
-      return res.status(409).json({ error: 'Account number already registered.' });
-    }
-
-    const strengthResult = await validatePasswordStrength(password);
-    if (!strengthResult.valid) {
-      return res.status(400).json({ error: strengthResult.error });
-    }
-
-    await User.create({ username, fullName, idNumber, accountNumber, password });
-
-    res.status(201).json({ message: 'Registration successful. Please login.' });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed. Please try again.' });
-  }
-});
-
-// POST /api/auth/login
+// POST /api/auth/login:
 router.post('/login', loginLimiter, authValidation.login, async (req, res) => {
   try {
     const { username, accountNumber, password } = req.body;
