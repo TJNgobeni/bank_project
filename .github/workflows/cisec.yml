@@ -51,8 +51,9 @@ jobs:
         if: always()
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORG }}
-          SONAR_PROJECT_KEY: bank_project_backend
+        with:
+          organization: ${{ secrets.SONAR_ORG }}
+          projectKey: bank_project_backend
 
   frontend-checks:
     name: Frontend Build & Static Test
